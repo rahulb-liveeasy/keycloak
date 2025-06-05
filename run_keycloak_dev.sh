@@ -1,16 +1,18 @@
-# take module name in first argument
 #!/bin/bash
 
 module_name=$1
+no_build=$2
 
-# Build the project
-if [ -z "$module_name" ]; then
-    mvn clean install -DskipTests
+if [ "$no_build" != "no_build" ]; then
+    if [ -z "$module_name" ]; then
+        mvn clean install -DskipTests
+    else
+        mvn clean install -DskipTests -pl "$module_name" -am
+    fi
 else
-    mvn clean install -DskipTests -pl "$module_name" -am
+    echo "Skipping build as 'no_build' flag is passed."
 fi
 
-# Check if the ZIP file exists before unzipping
 zip_file="./quarkus/dist/target/keycloak-26.2.4.zip"
 if [ -f "$zip_file" ]; then
     echo "Unzipping $zip_file..."
@@ -21,3 +23,6 @@ else
 fi
 
 docker-compose -f docker-compose-dev.yaml up --build --force-recreate --remove-orphans
+
+# command to run to run without building
+# ./run_keycloak_dev.sh "" no_build
