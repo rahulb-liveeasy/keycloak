@@ -1,0 +1,29 @@
+FROM registry.access.redhat.com/ubi9 
+
+# Install required packages
+RUN dnf install -y tar gzip java-17-openjdk-headless findutils
+
+# Create directory structure
+RUN mkdir -p /opt/keycloak/data
+
+# Copy your local build directly (no need for ADD/unpack steps)
+COPY quarkus/dist/target/keycloak-26.2.4/ /opt/keycloak/
+
+# Set proper permissions
+RUN chmod -R g+rwX /opt/keycloak && \
+    echo "keycloak:x:0:root" >> /etc/group && \
+    echo "keycloak:x:1000:0:keycloak user:/opt/keycloak:/sbin/nologin" >> /etc/passwd
+
+# Set environment variables
+ENV LANG=en_US.UTF-8
+ENV KC_RUN_IN_CONTAINER=true
+
+# Switch to non-root user
+USER 1000
+
+# Expose ports
+EXPOSE 8080 8443 9000
+
+# Set entry point
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+CMD ["start-dev"]
