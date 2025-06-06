@@ -45,6 +45,7 @@ public interface Details {
     String USERNAME = "username";
     String FIRST_NAME = "first_name";
     String LAST_NAME = "last_name";
+    String SITE_NAME = "site_name";
     String PREVIOUS_FIRST_NAME = PREF_PREVIOUS + "first_name";
     String UPDATED_FIRST_NAME = PREF_UPDATED + "first_name";
     String PREVIOUS_LAST_NAME = PREF_PREVIOUS + "last_name";

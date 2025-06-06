@@ -9,6 +9,9 @@ RUN mkdir -p /opt/keycloak/data
 # Copy your local build directly (no need for ADD/unpack steps)
 COPY quarkus/dist/target/keycloak-26.2.4/ /opt/keycloak/
 
+# For Custom Theme
+COPY keycloak-theme-for-kc-22-to-25.jar /opt/keycloak/providers/
+
 # Set proper permissions
 RUN chmod -R g+rwX /opt/keycloak && \
     echo "keycloak:x:0:root" >> /etc/group && \

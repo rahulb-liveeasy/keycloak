@@ -93,11 +93,15 @@ public class RegistrationUserCreation implements FormAction, FormActionFactory {
         String username = attributes.getFirst(UserModel.USERNAME);
         String firstName = attributes.getFirst(UserModel.FIRST_NAME);
         String lastName = attributes.getFirst(UserModel.LAST_NAME);
+        String siteName= attributes.getFirst(Details.SITE_NAME);
         context.getEvent().detail(Details.EMAIL, email);
 
         context.getEvent().detail(Details.USERNAME, username);
         context.getEvent().detail(Details.FIRST_NAME, firstName);
         context.getEvent().detail(Details.LAST_NAME, lastName);
+        if (siteName != null) {
+            context.getEvent().detail(Details.SITE_NAME, siteName);
+        }
 
         if (context.getRealm().isRegistrationEmailAsUsername()) {
             context.getEvent().detail(Details.USERNAME, email);
@@ -139,6 +143,7 @@ public class RegistrationUserCreation implements FormAction, FormActionFactory {
 
         String email = formData.getFirst(UserModel.EMAIL);
         String username = formData.getFirst(UserModel.USERNAME);
+        String siteName = formData.getFirst(Details.SITE_NAME);
 
         if (context.getRealm().isRegistrationEmailAsUsername()) {
             username = email;
@@ -147,9 +152,13 @@ public class RegistrationUserCreation implements FormAction, FormActionFactory {
         context.getEvent().detail(Details.USERNAME, username)
                 .detail(Details.REGISTER_METHOD, "form")
                 .detail(Details.EMAIL, email);
+        
 
         UserProfile profile = getOrCreateUserProfile(context, formData);
         UserModel user = profile.create();
+        if (siteName != null) {
+            user.setSingleAttribute(Details.SITE_NAME, siteName);
+        }
 
         addOrganizationMember(context, user);
 
