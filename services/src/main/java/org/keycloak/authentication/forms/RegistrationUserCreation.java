@@ -93,16 +93,22 @@ public class RegistrationUserCreation implements FormAction, FormActionFactory {
         String username = attributes.getFirst(UserModel.USERNAME);
         String firstName = attributes.getFirst(UserModel.FIRST_NAME);
         String lastName = attributes.getFirst(UserModel.LAST_NAME);
-        String siteName= attributes.getFirst(Details.SITE_NAME);
+        String siteName = attributes.getFirst(Details.SITE_NAME);
+        String realmName = context.getRealm().getName();
+        if (!"master".equals(realmName) && 
+            (siteName == null || siteName.trim().isEmpty())) {
+            // raise validation error
+            List<FormMessage> errors = List.of(new FormMessage("site_name", "Site name is required"));
+            context.error(Errors.INVALID_REGISTRATION);
+            context.validationError(formData, errors);
+            return;
+        }
+
         context.getEvent().detail(Details.EMAIL, email);
 
         context.getEvent().detail(Details.USERNAME, username);
         context.getEvent().detail(Details.FIRST_NAME, firstName);
         context.getEvent().detail(Details.LAST_NAME, lastName);
-        if (siteName != null) {
-            context.getEvent().detail(Details.SITE_NAME, siteName);
-        }
-
         if (context.getRealm().isRegistrationEmailAsUsername()) {
             context.getEvent().detail(Details.USERNAME, email);
         }
