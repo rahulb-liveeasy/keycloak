@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi9 
 
 # Install required packages
-RUN dnf install -y tar gzip java-17-openjdk-headless findutils
+RUN dnf install -y tar gzip java-21-openjdk-headless findutils
 
 # Create directory structure
 RUN mkdir -p /opt/keycloak/data
@@ -11,6 +11,7 @@ COPY quarkus/dist/target/keycloak-26.2.4/ /opt/keycloak/
 
 # For Custom Theme
 COPY keycloak-theme-for-kc-22-to-25.jar /opt/keycloak/providers/
+COPY actions-token-0.0.10.jar /opt/keycloak/providers/
 
 # Set proper permissions
 RUN chmod -R g+rwX /opt/keycloak && \
