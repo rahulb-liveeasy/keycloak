@@ -952,8 +952,57 @@ public class AuthenticationManager {
         // The user has successfully logged in and we can clear his/her previous login failure attempts.
         logSuccess(session, authSession);
 
-        return protocol.authenticated(authSession, userSession, clientSessionCtx);
+        // Custom LiveEasy Logic
+        Response defaultResponse = protocol.authenticated(authSession, userSession, clientSessionCtx);
+        UserModel user = userSession.getUser();
+        String websiteUrl = user.getFirstAttribute("website_url");
+        String redirectToWebsiteUrl = user.getFirstAttribute("redirect_to_website_url");
 
+        if (websiteUrl != null 
+            && redirectToWebsiteUrl != null 
+            && !websiteUrl.isEmpty() 
+            && Boolean.parseBoolean(redirectToWebsiteUrl))
+        {
+            try {
+                URI originalLocation = defaultResponse.getLocation();
+                if (originalLocation != null) {
+                    String originalUrl = originalLocation.toString();
+                    StringBuilder modifiedUrl = new StringBuilder(websiteUrl);
+
+                    int queryIndex = originalUrl.indexOf('?');
+                    int fragmentIndex = originalUrl.indexOf('#');
+
+                    // Handle query parameters
+                    // by default keycloak append state and other details as fragments but we can change that if we want
+
+                    if (queryIndex > 0) {
+                        String originalQuery;
+                        if (fragmentIndex > queryIndex) {
+                            originalQuery = originalUrl.substring(queryIndex + 1, fragmentIndex);
+                        } else {
+                            originalQuery = originalUrl.substring(queryIndex + 1);
+                        }
+
+                        modifiedUrl.append(websiteUrl.contains("?") ? "&" : "?").append(originalQuery);
+                    }
+
+                    // Handle fragments (important for implicit flow, state, tokens)
+                    if (fragmentIndex > 0) {
+                        String originalFragment = originalUrl.substring(fragmentIndex); // includes '#'
+                        modifiedUrl.append(originalFragment);
+                    }
+
+                    URI newLocation = new URI(modifiedUrl.toString());
+                    defaultResponse = Response.status(302).location(newLocation).build();
+                    logger.debugf("Redirecting user to website_url with original parameters: %s", newLocation);
+
+                }
+            } catch (Exception e) {
+                logger.warnf("Error updating redirect URL to website_url attribute: %s", e.getMessage());
+            }
+        }
+
+        return defaultResponse;
     }
 
     /**
